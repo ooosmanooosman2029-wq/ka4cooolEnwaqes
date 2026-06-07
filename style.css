@@ -231,7 +231,7 @@ body::before {
 
 /* THEME TOGGLE */
 .theme-toggle {
-  position: fixed;
+  position: absolute;
   top: 16px;
   left: 16px;
   z-index: 100;
