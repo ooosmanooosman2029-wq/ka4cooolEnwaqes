@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>كشكول النواقص – صيدلية السعد</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    
+  </head>
+  <body>
+    <!-- SETUP OVERLAY -->
+    <div class="setup-overlay" id="setup-overlay">
+      <div class="setup-box">
+        <div style="font-size: 40px; margin-bottom: 12px">🔗</div>
+        <h2>ربط الكشكول بالسحابة</h2>
+        <p>
+          عشان كل الصيادلة يشوفوا نفس البيانات، محتاج تعمل قاعدة بيانات مجانية
+          على Firebase ثم تحط الرابط هنا.
+        </p>
+        <div class="setup-steps">
+          <div class="setup-step">
+            <div class="step-num">1</div>
+            <span
+              >روح على <strong>console.firebase.google.com</strong> وسجّل بحسابك
+              على Google</span
+            >
+          </div>
+          <div class="setup-step">
+            <div class="step-num">2</div>
+            <span>اعمل Project جديد (اسمه مثلاً: saad-pharmacy)</span>
+          </div>
+          <div class="setup-step">
+            <div class="step-num">3</div>
+            <span
+              >من القائمة اختر <strong>Realtime Database</strong> ← Create
+              database ← Start in test mode</span
+            >
+          </div>
+          <div class="setup-step">
+            <div class="step-num">4</div>
+            <span
+              >انسخ الرابط اللي هيظهر (شكله:
+              <em>https://xxx-default-rtdb.firebaseio.com</em>) والصقه هنا</span
+            >
+          </div>
+        </div>
+        <div class="setup-input-group">
+          <label>رابط Firebase Database URL</label>
+          <input
+            type="text"
+            id="firebase-url-input"
+            placeholder="https://your-project-default-rtdb.firebaseio.com"
+            dir="ltr"
+          />
+        </div>
+        <div class="setup-input-group">
+          <label>اسمك (عشان يظهر مين أضاف الصنف)</label>
+          <input
+            type="text"
+            id="user-name-input"
+            placeholder="مثال: د. إيمان"
+          />
+        </div>
+        <button class="btn-setup" onclick="saveSetup()">
+          🚀 ابدأ المزامنة
+        </button>
+        <br />
+        <a
+          href="https://console.firebase.google.com"
+          target="_blank"
+          class="setup-link"
+          >↗ فتح Firebase Console</a
+        >
+      </div>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span class="theme-icon" id="theme-icon">☀️</span>
+      <span id="theme-label">وضع النهار</span>
+    </button>
+
+    <div class="wrapper">
+      <header>
+        <div class="header-badge">💊 صيدلية السعد</div>
+        <h1>كشكول النواقص</h1>
+        <p>مزامنة فورية بين جميع الأجهزة</p>
+      </header>
+
+      <!-- Sync Status -->
+      <div class="sync-bar syncing" id="sync-bar">
+        <div class="sync-dot"></div>
+        <span id="sync-text">جاري الاتصال...</span>
+        <span class="sync-reset" onclick="resetSetup()"
+          >تغيير إعدادات الاتصال</span
+        >
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat-chip total">
+          <span class="stat-num" id="stat-total">0</span
+          ><span class="stat-label">إجمالي النواقص</span>
+        </div>
+        <div class="stat-chip pending">
+          <span class="stat-num" id="stat-pending">0</span
+          ><span class="stat-label">لم يُطلب بعد</span>
+        </div>
+        <div class="stat-chip done">
+          <span class="stat-num" id="stat-done">0</span
+          ><span class="stat-label">تم الطلب ✓</span>
+        </div>
+      </div>
+
+      <!-- Add form -->
+      <div class="add-section">
+        <div class="section-title">➕ إضافة صنف ناقص</div>
+        <div class="form-row">
+          <div class="input-group" style="flex: 2; min-width: 200px">
+            <label>اسم الصنف</label>
+            <div class="autocomplete-wrap">
+              <input
+                type="text"
+                id="inp-name"
+                placeholder="مثال: أموكسيسيلين 500 مجم..."
+                oninput="onNameInput()"
+                onkeydown="onNameKey(event)"
+                autocomplete="off"
+              />
+              <div class="autocomplete-list" id="ac-list"></div>
+            </div>
+            <div class="dup-warning" id="dup-warning">
+              <span>⚠️</span>
+              <span id="dup-msg" style="flex: 1"></span>
+              <button onclick="scrollToDuplicate()">عرض الصنف</button>
+            </div>
+          </div>
+          <div class="input-group" style="flex: 1; min-width: 100px">
+            <label>الكمية المطلوبة</label>
+            <input type="number" id="inp-qty" placeholder="عدد" min="1" />
+          </div>
+          <div class="input-group" style="flex: 1; min-width: 130px">
+            <label>التصنيف</label>
+            <select id="inp-cat">
+              <option value="">— اختر —</option>
+              <option value="أدوية">💊 أدوية</option>
+              <option value="مستلزمات">🩺 مستلزمات</option>
+              <option value="مستحضرات تجميل">💄 تجميل</option>
+              <option value="مكملات غذائية">🌿 مكملات</option>
+              <option value="أطفال">👶 أطفال</option>
+              <option value="حقن وأمصال">💉 حقن</option>
+              <option value="أخرى">📦 أخرى</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="margin-top: 10px">
+          <div class="input-group" style="flex: 3">
+            <label>ملاحظة (اختياري)</label>
+            <input
+              type="text"
+              id="inp-note"
+              placeholder="مثال: بديل مقبول، أولوية عالية..."
+            />
+          </div>
+          <button class="btn-add" onclick="addItem()">＋ أضف للكشكول</button>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-row">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="search-inp"
+            placeholder="ابحث عن صنف..."
+            oninput="renderList()"
+          />
+        </div>
+        <div class="filter-btns">
+          <button class="filter-btn active" onclick="setFilter('all', this)">
+            الكل
+          </button>
+          <button class="filter-btn" onclick="setFilter('pending', this)">
+            ناقص
+          </button>
+          <button class="filter-btn" onclick="setFilter('done', this)">
+            تم الطلب
+          </button>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn-secondary" onclick="window.print()">🖨️ طباعة</button>
+        <button class="btn-secondary" onclick="exportCSV()">
+          📥 تصدير CSV
+        </button>
+        <button class="btn-secondary btn-danger" onclick="clearDone()">
+          🗑️ حذف المطلوبة
+        </button>
+      </div>
+
+      <div class="items-list" id="items-list"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
