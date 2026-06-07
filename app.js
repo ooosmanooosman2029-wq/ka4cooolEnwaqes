@@ -17,7 +17,7 @@ function applyLight() {
 function applyDark() {
   document.body.classList.remove("light");
   document.getElementById("theme-icon").textContent = "☀️";
-  document.getElementById("theme-label").textContent = "وضع النهار";
+  document.getElementById("theme-label").textContent = "وضع الصباح";
 }
 function toggleTheme() {
   const l = document.body.classList.contains("light");
